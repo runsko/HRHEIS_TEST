@@ -64,8 +64,9 @@ void closeDoor(){
 
 
 void updateFloorLight(){
-	if (getFloorSensor() != -1) {
-         currentFloor = getFloorSensor();
+    int floor = getFloorSensor();
+	if (floor != -1) {
+         currentFloor = floor;
     }
     setFloorIndicator(currentFloor);
 }
@@ -221,8 +222,9 @@ void handleEmergencyStop(){
     resetStopLamp();
 
     //if elevator is in floor when pressed: the door is opened
-    if(getFloorSensor() != -1){
-        currentFloor = getFloorSensor();
+    int floor = getFloorSensor();
+    if(floor != -1){
+        currentFloor = floor;
         if(timerTimeOut()){ //Hvis timer > 3
             closeDoor();
         }

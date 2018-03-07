@@ -3,7 +3,7 @@
 int timerActive=0;
 clock_t startClock;//LITT USIKKER PÅ CLOCK_T
 clock_t currentClock;
-const int WAITTIME = 1;
+const int WAITTIME = 3;
 
 
 void startTimer(){
