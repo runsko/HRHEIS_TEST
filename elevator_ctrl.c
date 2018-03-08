@@ -1,11 +1,11 @@
 #include "elevator_ctrl.h"
 
-state_t state; //MOVING_UP, MOVING_DOWN or WAIT (OR EMERGENCY_STOP)
+state_t state; //MOVING_UP, MOVING_DOWN, WAIT OR EMERGENCY_STOP
 direction_t direction; //keeps track of what direction we are (or last were) moving in
 int currentFloor; //keeps track of what floor we are (or last were) in.
-int doorOpen;
+int doorOpen; //1 if door is open, 0 if door is closed
 
-int orders[N_FLOORS][3];
+int orders[N_FLOORS][3]; //matrix of possible orders
 
 
 
@@ -72,7 +72,7 @@ void updateFloorLight(){
 }
 
 
-int getOrders(button_t button, int floor){
+int getOrder(button_t button, int floor){
     return orders[floor][button];
 }
 
@@ -90,7 +90,7 @@ void removeFromOrders(button_t button, int floor){
 int checkOrdersOver(){
 
     for (int i = currentFloor+1; i < N_FLOORS; ++i){ 
-        if(getOrders(BUTTON_CALL_UP, i) || getOrders(BUTTON_COMMAND, i) || getOrders(BUTTON_CALL_DOWN, i)){
+        if(getOrder(BUTTON_CALL_UP, i) || getOrder(BUTTON_COMMAND, i) || getOrder(BUTTON_CALL_DOWN, i)){
             return 1;
         }
     }
@@ -100,7 +100,7 @@ int checkOrdersOver(){
 int checkOrdersUnder(){
 
     for (int i = currentFloor-1; i >= BOTTOM_FLOOR; --i){
-        if (getOrders(BUTTON_CALL_DOWN, i) || getOrders(BUTTON_COMMAND, i) || getOrders(BUTTON_CALL_UP, i)){
+        if (getOrder(BUTTON_CALL_DOWN, i) || getOrder(BUTTON_COMMAND, i) || getOrder(BUTTON_CALL_UP, i)){
             return 1;
         }
     }
@@ -112,10 +112,10 @@ int checkOrdersUnder(){
 
 void checkOrdersChangeState() {
 
-    for (int i = 0; i < N_FLOORS; ++i){ //for all floors, all floor buttons
+    for (int i = 0; i < N_FLOORS; ++i){
 
         //executes if any type of button of a floor is ordered
-        if (getOrders(BUTTON_CALL_UP, i) || getOrders(BUTTON_CALL_DOWN, i) || getOrders(BUTTON_COMMAND, i)) {
+        if (getOrder(BUTTON_CALL_UP, i) || getOrder(BUTTON_CALL_DOWN, i) || getOrder(BUTTON_COMMAND, i)) {
             if (i > currentFloor){
                 changeState(MOVING_UP);
             }
@@ -173,19 +173,19 @@ void checkButtonsAddToOrders(){
 void checkIfShouldStop(){
     for(int floor = 0; floor < N_FLOORS; floor++){
         if(getFloorSensor() == floor){
-            if (getOrders(BUTTON_COMMAND, floor)){
+            if (getOrder(BUTTON_COMMAND, floor)){
                 changeState(WAIT);
             }
-            if (direction == DIRN_UP && getOrders(BUTTON_CALL_UP, floor)) {
+            if (direction == DIRN_UP && getOrder(BUTTON_CALL_UP, floor)) {
                 changeState(WAIT);
             }
-            if (direction == DIRN_DOWN && getOrders(BUTTON_CALL_DOWN, floor)) {
+            if (direction == DIRN_DOWN && getOrder(BUTTON_CALL_DOWN, floor)) {
                 changeState(WAIT);
             }
-            if (direction == DIRN_UP && getOrders(BUTTON_CALL_DOWN, floor) && !checkOrdersOver()) {
+            if (direction == DIRN_UP && getOrder(BUTTON_CALL_DOWN, floor) && !checkOrdersOver()) {
                 changeState(WAIT);
             }
-            if (direction == DIRN_DOWN && getOrders(BUTTON_CALL_UP, floor) && !checkOrdersUnder()) {
+            if (direction == DIRN_DOWN && getOrder(BUTTON_CALL_UP, floor) && !checkOrdersUnder()) {
                 changeState(WAIT);
             }
         }

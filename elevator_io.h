@@ -4,6 +4,12 @@
 #include "elev.h"
 #include "globals.h"
 
+
+/////////////////////////////////////////////////////
+/**This file makes elev.h functions more intuitive**/
+/////////////////////////////////////////////////////
+
+
 //starts motor in direction <dir>
 void startMotor(direction_t dir);
 void stopMotor();

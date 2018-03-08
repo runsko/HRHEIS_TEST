@@ -3,6 +3,13 @@
 
 #include "elev.h"
 
+
+////////////////////////////////////
+/**This file defines useful types**/
+////////////////////////////////////
+
+
+
 #define TOP_FLOOR N_FLOORS-1
 #define BOTTOM_FLOOR 0
 
