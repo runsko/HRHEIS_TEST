@@ -13,7 +13,10 @@
 
 
 void startTimer();
+
+//returns 1 if timer > 3, 0 otherwise
 int timerTimeOut();
+
 void stopTimer();
 
 

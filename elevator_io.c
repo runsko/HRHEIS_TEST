@@ -1,5 +1,5 @@
 #include "elevator_io.h"
-//test git
+
 
 void startMotor(direction_t dir) {
     elev_set_motor_direction(dir);

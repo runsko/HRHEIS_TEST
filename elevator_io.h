@@ -31,15 +31,15 @@ int stopIsPressed();
 
 
 
-//makes a buttons lamp light up
+//turns on a button light
 void setButtonLamp(button_t button, int floor);
-//turns off a buttons lamp light
+//turns off a button light
 void resetButtonLamp(button_t button, int floor);
 
 
-//makes the stop lamp light up
+//turns on stop button light
 void setStopLamp();
-//turns off the stop lamp light
+//turns off stop button light
 void resetStopLamp();
 
 
