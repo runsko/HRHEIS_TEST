@@ -48,14 +48,12 @@ void changeState(state_t newstate){
 
 
 void openDoor(){
-
     if(doorOpen == 0){
         setDoorLight();
         doorOpen = 1;
     }
 }
 void closeDoor(){
-
     if(doorOpen == 1){
         resetDoorLight();
         doorOpen = 0;
@@ -64,6 +62,7 @@ void closeDoor(){
 
 
 void updateFloorLight(){
+
     int floor = getFloorSensor();
 	if (floor != -1) {
          currentFloor = floor;
@@ -107,14 +106,11 @@ int checkOrdersUnder(){
     return 0;
 }
 
-///////////////////////////comments done to here/////////////////////////////////////
-
-
 void checkOrdersChangeState() {
 
     for (int i = 0; i < N_FLOORS; ++i){
 
-        //executes if any type of button of a floor is ordered
+        //executes if any button is in orders
         if (getOrder(BUTTON_CALL_UP, i) || getOrder(BUTTON_CALL_DOWN, i) || getOrder(BUTTON_COMMAND, i)) {
             if (i > currentFloor){
                 changeState(MOVING_UP);
@@ -122,13 +118,13 @@ void checkOrdersChangeState() {
             else if (i < currentFloor){
                 changeState(MOVING_DOWN);
             }
-            else { //handles the case where elevator was stopped between floors and is ordered to currentFloor
-                if (direction == DIRN_UP) { 
-                    currentFloor++; //prevents the change of direction when elevator is stopped consecutively between floors - special rare occasion
+            else { //handles when elevator is stopped between floors and ordered to currentFloor
+                if (direction == DIRN_UP) {
+                    currentFloor++; //handles bad input - consecutive stops
                     changeState(MOVING_DOWN); 
                 }
                 else if (direction == DIRN_DOWN) {
-                    currentFloor--; //prevents the change of direction when elevator is stopped consecutively between floors - special rare occasion
+                    currentFloor--; //handles bad input - consecutive stops
                     changeState(MOVING_UP);
                 }
             }
@@ -155,9 +151,8 @@ void checkFloorReachedUpdateOrders(){
 
 
 void checkButtonsAddToOrders(){
-    for (int floor = 0; floor < N_FLOORS; ++floor)
-    {
-        if (floor != 0 && buttonPressed(BUTTON_CALL_DOWN, floor)){
+    for (int floor = 0; floor < N_FLOORS; ++floor) {
+        if (floor != BOTTOM_FLOOR && buttonPressed(BUTTON_CALL_DOWN, floor)){
             addToOrders(BUTTON_CALL_DOWN, floor);
         }
         if (floor != TOP_FLOOR && buttonPressed(BUTTON_CALL_UP, floor)){
@@ -176,16 +171,16 @@ void checkIfShouldStop(){
             if (getOrder(BUTTON_COMMAND, floor)){
                 changeState(WAIT);
             }
-            if (direction == DIRN_UP && getOrder(BUTTON_CALL_UP, floor)) {
+            else if (direction == DIRN_UP && getOrder(BUTTON_CALL_UP, floor)) {
                 changeState(WAIT);
             }
-            if (direction == DIRN_DOWN && getOrder(BUTTON_CALL_DOWN, floor)) {
+            else if (direction == DIRN_DOWN && getOrder(BUTTON_CALL_DOWN, floor)) {
                 changeState(WAIT);
             }
-            if (direction == DIRN_UP && getOrder(BUTTON_CALL_DOWN, floor) && !checkOrdersOver()) {
+            else if (direction == DIRN_UP && getOrder(BUTTON_CALL_DOWN, floor) && !checkOrdersOver()) {
                 changeState(WAIT);
             }
-            if (direction == DIRN_DOWN && getOrder(BUTTON_CALL_UP, floor) && !checkOrdersUnder()) {
+            else if (direction == DIRN_DOWN && getOrder(BUTTON_CALL_UP, floor) && !checkOrdersUnder()) {
                 changeState(WAIT);
             }
         }
@@ -195,63 +190,49 @@ void checkIfShouldStop(){
 
 
 void handleEmergencyStop(){
-    //stops elevator
+    int floor = getFloorSensor();
     stopMotor();
+    setStopLamp();
 
-
-//if elevator is in floor when pressed: 
-//  *the door is opened
-//  *stays open three seconds after button is released
-
-    //deletes all orders in Orders
+    //deletes all orders
     for (int i = 0; i < N_FLOORS; ++i) {
-        if (i != 0)
+        if (i != 0){
             removeFromOrders(BUTTON_CALL_DOWN, i);
-
-        if (i != N_FLOORS - 1)
+        }
+        if (i != N_FLOORS - 1){
             removeFromOrders(BUTTON_CALL_UP, i);
-
+        }
         removeFromOrders(BUTTON_COMMAND, i);
     }
 
-    //runs while button is pressed (so no orders can come in)
+    if (floor != -1){
+        openDoor();
+        currentFloor = floor;
+    }
+
     while(stopIsPressed()){
-        setStopLamp();
         
-        //if elevator is in floor while pressed. Keeps door open and timer reset
-        if(getFloorSensor() != -1){
-            openDoor();
+        //Keeps timer reset
+        if(floor != -1){
             startTimer();
         }
     }
 
     resetStopLamp();
-
-    //if elevator is in floor when pressed: the door is opened
-    int floor = getFloorSensor();
-    if(floor != -1){
-        currentFloor = floor;
-        if(timerTimeOut()){ //Hvis timer > 3
-            closeDoor();
-        }
-    }
     changeState(WAIT);
-    
-    
 }
-/////////////////////////////////
+
 
 
 
 void update() {
-    if(stopIsPressed()){
+    if (stopIsPressed()){
         changeState(EMERGENCY_STOP);
     }
    
     checkButtonsAddToOrders();
     checkFloorReachedUpdateOrders();
     updateFloorLight();
-
     checkIfShouldStop();
 
     switch (state) {
@@ -259,7 +240,7 @@ void update() {
             closeDoor();
             direction = DIRN_UP;
             startMotor(direction);
-            if(getFloorSensor() == TOP_FLOOR){
+            if (getFloorSensor() == TOP_FLOOR){ //safeguard
                 changeState(WAIT);
             }
             break;
@@ -267,25 +248,28 @@ void update() {
             closeDoor();
             direction = DIRN_DOWN;
             startMotor(direction);
-            if(getFloorSensor() == BOTTOM_FLOOR){
+            if (getFloorSensor() == BOTTOM_FLOOR){ //safeguard
                 changeState(WAIT);
             }
             break;
         case WAIT: //if elevator is waiting in a floor
-            
-            if(timerTimeOut()){ //If timer > 3
+            if (timerTimeOut()){ //If timer > 3
                 closeDoor();
                 if (direction == DIRN_UP) {
-                    if (!checkOrdersOver()){
+                    if (checkOrdersOver()){
+                        changeState(MOVING_UP);
+                    }
+                    else { 
                         checkOrdersChangeState();
                     }
-                    else { changeState(MOVING_UP);}
                 }
                 else if (direction == DIRN_DOWN) {
-                    if (!checkOrdersUnder()) {
+                    if (checkOrdersUnder()) {
+                        changeState(MOVING_DOWN);
+                    }
+                    else { 
                         checkOrdersChangeState();
                     }
-                    else { changeState(MOVING_DOWN);}
                 }
             }
             break;
