@@ -37,15 +37,15 @@ void removeFromOrders(button_t button, int floor);
 
 
 //returns 1 if there are unhandled orders above/below the elevator, 0 otherwise
-int checkUpwards();
-int checkDownwards();
+int checkOrdersOver();
+int checkOrdersUnder();
 
 
 ///////////////////////////comments done to here/////////////////////////////////////
 
 
 //checks if any order is present and changes state accordingly
-void checkAllButtons();
+void checkOrdersChangeState();
 
 //Checks if any of the ordering buttons are pressed and adds the order to Orders if they are
 void checkButtonsAddToOrders();

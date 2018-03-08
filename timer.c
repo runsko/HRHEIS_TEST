@@ -1,24 +1,24 @@
 #include "timer.h"
 
 int timerActive=0;
-clock_t startClock;//LITT USIKKER PÅ CLOCK_T
-clock_t currentClock;
+clock_t startTime;
+clock_t currentTime;
 const int WAITTIME = 3;
 
 
 void startTimer(){
 	timerActive=1;
-	startClock=clock();
-	currentClock=clock();
+	startTime=clock(); //clock() returns number of clock ticks elapsed since program was lauched
+	currentTime=clock();
 }
 
 
 int timerTimeOut(){
 	if(timerActive){
-		currentClock=clock();
+		currentTime=clock();
 	}
 	
-	if(((currentClock-startClock)/CLOCKS_PER_SEC) >= WAITTIME){
+	if(((currentTime-startTime)/CLOCKS_PER_SEC) >= WAITTIME){
 		stopTimer();
 		return 1;
 	}

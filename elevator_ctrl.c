@@ -87,7 +87,7 @@ void removeFromOrders(button_t button, int floor){
 }
 
 
-int checkUpwards(){
+int checkOrdersOver(){
 
     for (int i = currentFloor+1; i < N_FLOORS; ++i){ 
         if(getOrders(BUTTON_CALL_UP, i) || getOrders(BUTTON_COMMAND, i) || getOrders(BUTTON_CALL_DOWN, i)){
@@ -97,7 +97,7 @@ int checkUpwards(){
     return 0;
 }
 
-int checkDownwards(){
+int checkOrdersUnder(){
 
     for (int i = currentFloor-1; i >= BOTTOM_FLOOR; --i){
         if (getOrders(BUTTON_CALL_DOWN, i) || getOrders(BUTTON_COMMAND, i) || getOrders(BUTTON_CALL_UP, i)){
@@ -110,7 +110,7 @@ int checkDownwards(){
 ///////////////////////////comments done to here/////////////////////////////////////
 
 
-void checkAllButtons() {
+void checkOrdersChangeState() {
 
     for (int i = 0; i < N_FLOORS; ++i){ //for all floors, all floor buttons
 
@@ -123,8 +123,14 @@ void checkAllButtons() {
                 changeState(MOVING_DOWN);
             }
             else { //handles the case where elevator was stopped between floors and is ordered to currentFloor
-                if (direction == DIRN_UP) { changeState(MOVING_DOWN); }
-                else if (direction == DIRN_DOWN) { changeState(MOVING_UP); }
+                if (direction == DIRN_UP) { 
+                    currentFloor++; //prevents the change of direction when elevator is stopped consecutively between floors - special rare occasion
+                    changeState(MOVING_DOWN); 
+                }
+                else if (direction == DIRN_DOWN) {
+                    currentFloor--; //prevents the change of direction when elevator is stopped consecutively between floors - special rare occasion
+                    changeState(MOVING_UP);
+                }
             }
         }
     }
@@ -176,10 +182,10 @@ void checkIfShouldStop(){
             if (direction == DIRN_DOWN && getOrders(BUTTON_CALL_DOWN, floor)) {
                 changeState(WAIT);
             }
-            if (direction == DIRN_UP && getOrders(BUTTON_CALL_DOWN, floor) && !checkUpwards()) {
+            if (direction == DIRN_UP && getOrders(BUTTON_CALL_DOWN, floor) && !checkOrdersOver()) {
                 changeState(WAIT);
             }
-            if (direction == DIRN_DOWN && getOrders(BUTTON_CALL_UP, floor) && !checkDownwards()) {
+            if (direction == DIRN_DOWN && getOrders(BUTTON_CALL_UP, floor) && !checkOrdersUnder()) {
                 changeState(WAIT);
             }
         }
@@ -270,14 +276,14 @@ void update() {
             if(timerTimeOut()){ //If timer > 3
                 closeDoor();
                 if (direction == DIRN_UP) {
-                    if (!checkUpwards()){
-                        checkAllButtons();
+                    if (!checkOrdersOver()){
+                        checkOrdersChangeState();
                     }
                     else { changeState(MOVING_UP);}
                 }
                 else if (direction == DIRN_DOWN) {
-                    if (!checkDownwards()) {
-                        checkAllButtons();
+                    if (!checkOrdersUnder()) {
+                        checkOrdersChangeState();
                     }
                     else { changeState(MOVING_DOWN);}
                 }

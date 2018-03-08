@@ -10,7 +10,7 @@ int main() {
         return 1;
     }
 
-    printf("Press STOP button to stop elevator and exit program.\n");
+    printf("Press ctrl+C to stop elevator and exit program.\n");
 
     elevatorInitiate();
 
